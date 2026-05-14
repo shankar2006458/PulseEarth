@@ -3,646 +3,408 @@
  <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PulseEarth</title>
+  <title>EarthNow</title>
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;family=Outfit:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;family=Outfit:wght@300;400;600;700;800&amp;display=swap" rel="stylesheet">
   <style>
-html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'Outfit', sans-serif; }
-* { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body { font-family: 'Outfit', sans-serif; background: #0a0a0f; color: #fff; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    
+    @keyframes pulse-glow { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+    @keyframes float-up { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes star-drift { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100%) translateX(20px); opacity: 0; } }
+    
+    .animate-float { animation: float-up 0.6s ease-out forwards; opacity: 0; }
+    .pulse-live { animation: pulse-glow 1.5s ease-in-out infinite; }
+    
+    .glass-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+    .glass-card:hover, .glass-card:active {
+      background: rgba(255,255,255,0.06);
+      border-color: rgba(255,255,255,0.15);
+      transform: scale(1.02);
+    }
+    
+    .digit-roller { display: inline-block; overflow: hidden; height: 1em; line-height: 1; vertical-align: bottom; }
+    .digit-roller span { display: block; transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+    
+    .star { position: absolute; width: 2px; height: 2px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: star-drift linear infinite; }
+    
+    .category-chip { white-space: nowrap; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; font-size: 14px; }
+    .category-chip.active, .category-chip:hover { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.5); }
+    
+    .bottom-nav { background: rgba(10,10,15,0.95); border-top: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(20px); }
+    
+    .fullscreen-overlay { position: fixed; inset: 0; z-index: 100; background: #0a0a0f; display: none; flex-direction: column; align-items: center; justify-content: center; }
+    .fullscreen-overlay.show { display: flex; }
+    
+    ::-webkit-scrollbar { display: none; }
+    .no-scroll { -ms-overflow-style: none; scrollbar-width: none; }
 
-:root {
-  --bg: #0a0a0f;
-  --surface: rgba(255,255,255,0.03);
-  --border: rgba(255,255,255,0.06);
-  --accent: #a855f7;
-  --accent2: #6366f1;
-  --text: #e2e8f0;
-  --text-dim: #64748b;
-  --glow: rgba(168,85,247,0.3);
-}
-
-.glass { background: rgba(15,15,25,0.7); backdrop-filter: blur(20px); border: 1px solid var(--border); }
-.glow-border { box-shadow: 0 0 20px -5px var(--glow), inset 0 0 20px -10px var(--glow); }
-.glow-text { text-shadow: 0 0 20px var(--glow); }
-.pulse-dot { animation: pulse-dot 2s infinite; }
-@keyframes pulse-dot { 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:0.5; transform:scale(1.5); } }
-@keyframes float { 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
-@keyframes float-slow { 0%{ transform:translateY(0) rotate(0deg); } 50%{ transform:translateY(-20px) rotate(180deg); } 100%{ transform:translateY(0) rotate(360deg); } }
-@keyframes scan { 0%{ transform:translateY(-100%); } 100%{ transform:translateY(100%); } }
-@keyframes glow-pulse { 0%,100%{ box-shadow:0 0 20px var(--glow); } 50%{ box-shadow:0 0 40px var(--glow); } }
-@keyframes count-up { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-@keyframes slide-up { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-.float-anim { animation: float 4s ease-in-out infinite; }
-.float-slow { animation: float-slow 8s ease-in-out infinite; }
-.card-hover { transition: all 0.3s cubic-bezier(0.4,0,0.2,1); }
-.card-hover:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 0 30px -5px var(--glow); }
-.fade-in { animation: count-up 0.5s ease forwards; }
-.slide-in { animation: slide-up 0.6s ease forwards; }
-.sidebar-item { transition: all 0.2s; }
-.sidebar-item:hover, .sidebar-item.active { background: rgba(168,85,247,0.1); box-shadow: 0 0 15px -5px var(--glow); }
-.sidebar-item.active { border-left: 2px solid var(--accent); }
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* Themes */
-.theme-cyber { --accent: #a855f7; --accent2: #6366f1; --glow: rgba(168,85,247,0.3); --bg: #0a0a0f; }
-.theme-amoled { --accent: #22d3ee; --accent2: #06b6d4; --glow: rgba(34,211,238,0.3); --bg: #000000; }
-.theme-space { --accent: #3b82f6; --accent2: #1d4ed8; --glow: rgba(59,130,246,0.3); --bg: #050a18; }
-.theme-matrix { --accent: #22c55e; --accent2: #16a34a; --glow: rgba(34,197,94,0.3); --bg: #020a02; }
-.theme-white { --accent: #7c3aed; --accent2: #5b21b6; --glow: rgba(124,58,237,0.2); --bg: #f8fafc; --surface: rgba(0,0,0,0.02); --border: rgba(0,0,0,0.08); --text: #1e293b; --text-dim: #64748b; }
-
-/* Bottom nav for mobile */
-.bottom-nav { display: none; }
-@media (max-width: 768px) {
-  .sidebar-desktop { display: none !important; }
-  .bottom-nav { display: flex; }
-  .main-content { padding-bottom: 70px; }
-}
+    .favorite-heart{
+      font-size:24px;
+      line-height:1;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#ef4444;
+    }
   </style>
   <style>body { box-sizing: border-box; }</style>
  </head>
- <body class="h-full theme-cyber" style="background: var(--bg); color: var(--text);">
-  <div id="app" class="h-full flex overflow-hidden relative"><!-- Ambient particles -->
-   <div class="absolute inset-0 overflow-hidden pointer-events-none" id="particles"></div><!-- Landing Page -->
-   <div id="landing-view" class="w-full h-full overflow-y-auto scrollbar-hide relative"><!-- Hero Section -->
-    <section class="relative w-full min-h-screen flex items-center justify-center p-4 overflow-hidden">
-     <div class="absolute inset-0 opacity-30" style="background: radial-gradient(circle at 20% 50%, rgba(168,85,247,0.3) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(99,102,241,0.3) 0%, transparent 50%);"></div>
-     <div class="absolute top-10 left-10 w-96 h-96 rounded-full blur-3xl opacity-20 float-slow" style="background: linear-gradient(135deg, var(--accent), var(--accent2));"></div>
-     <div class="absolute bottom-10 right-10 w-80 h-80 rounded-full blur-3xl opacity-20 float-slow" style="background: linear-gradient(-135deg, var(--accent), var(--accent2)); animation-delay: 2s;"></div>
-     <div class="relative z-10 text-center max-w-3xl">
-      <div class="mb-6 inline-block">
-       <div class="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 mx-auto glow-pulse" style="background: linear-gradient(135deg, var(--accent), var(--accent2));"><i data-lucide="globe" class="w-8 h-8 text-white"></i>
-       </div>
+ <body class="h-full overflow-hidden">
+  <div id="app" class="h-full w-full flex flex-col relative overflow-hidden">
+   <!-- Stars background -->
+   <div id="stars" class="absolute inset-0 pointer-events-none overflow-hidden"></div><!-- Main scrollable content -->
+   <div id="main-content" class="flex-1 overflow-y-auto no-scroll pb-20 relative z-10">
+    <!-- Hero -->
+    <div class="px-5 pt-12 pb-6">
+     <p id="hero-text" class="text-gray-400 text-sm mb-1">The world is moving right now.</p>
+     <h1 id="app-title" class="text-2xl font-bold mb-6">EarthNow</h1>
+     <div class="glass-card p-6 text-center">
+      <div class="flex items-center justify-center gap-2 mb-2">
+       <span class="w-2 h-2 rounded-full bg-green-400 pulse-live"></span> <span class="text-xs text-green-400 uppercase tracking-wider">Live</span>
       </div>
-      <h1 class="text-5xl lg:text-7xl font-bold mb-4 glow-text" style="font-family:'JetBrains Mono',monospace;" id="landing-title">PulseEarth</h1>
-      <p class="text-lg lg:text-xl mb-8 text-gray-400 fade-in" style="animation-delay:0.1s;" id="landing-subtitle">A live window into the world.</p>
-      <p class="text-sm lg:text-base mb-8 opacity-70 max-w-2xl mx-auto fade-in" style="animation-delay:0.2s;">Monitor global metrics in real-time. From population dynamics and environmental data to financial markets and cosmic events. Command your world from a single dashboard.</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center fade-in" style="animation-delay:0.3s;"><button onclick="enterApp()" class="px-8 py-3 rounded-lg font-medium flex items-center justify-center gap-2 card-hover" style="background: linear-gradient(135deg, var(--accent), var(--accent2)); box-shadow: 0 0 20px var(--glow);"> <i data-lucide="arrow-right" class="w-4 h-4"></i> Enter Dashboard </button> <button onclick="scrollToPreview()" class="px-8 py-3 rounded-lg font-medium border glass card-hover" style="border-color: var(--border);"> Explore Live Data </button>
-      </div>
+      <p class="text-gray-400 text-sm mb-2">Emails Sent Today</p>
+      <div id="hero-counter" class="mono text-4xl font-bold text-white"></div>
+      <p class="text-xs text-gray-500 mt-2">Updated 0.2s ago</p>
      </div>
-    </section><!-- Live Preview Strip -->
-    <section class="relative w-full py-12 px-4 border-t border-b" style="border-color: var(--border);">
-     <div class="max-w-7xl mx-auto">
-      <h2 class="text-sm font-medium mb-6 text-center" style="color: var(--text-dim);">LIVE GLOBAL METRICS</h2>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 overflow-x-auto pb-2">
-       <div class="glass rounded-lg p-3 card-hover shrink-0 fade-in" style="animation-delay:0s; min-width:140px;">
-        <div class="flex items-center gap-1.5 mb-2"><i data-lucide="users" class="w-3 h-3" style="color: #a855f7;"></i> <span class="text-xs opacity-70">Population</span>
-        </div>
-        <div class="text-sm font-bold font-mono" id="preview-pop">
-         8.05B
-        </div>
-        <div class="text-xs opacity-50 mt-1">
-         +2.4%
-        </div>
-       </div>
-       <div class="glass rounded-lg p-3 card-hover shrink-0 fade-in" style="animation-delay:0.1s; min-width:140px;">
-        <div class="flex items-center gap-1.5 mb-2"><i data-lucide="bitcoin" class="w-3 h-3" style="color: #f59e0b;"></i> <span class="text-xs opacity-70">Bitcoin</span>
-        </div>
-        <div class="text-sm font-bold font-mono" id="preview-btc">
-         $42,847
-        </div>
-        <div class="text-xs opacity-50 mt-1">
-         +3.2%
-        </div>
-       </div>
-       <div class="glass rounded-lg p-3 card-hover shrink-0 fade-in" style="animation-delay:0.2s; min-width:140px;">
-        <div class="flex items-center gap-1.5 mb-2"><i data-lucide="activity" class="w-3 h-3" style="color: #ef4444;"></i> <span class="text-xs opacity-70">Earthquakes</span>
-        </div>
-        <div class="text-sm font-bold font-mono" id="preview-quake">
-         47
-        </div>
-        <div class="text-xs opacity-50 mt-1">
-         24h
-        </div>
-       </div>
-       <div class="glass rounded-lg p-3 card-hover shrink-0 fade-in" style="animation-delay:0.3s; min-width:140px;">
-        <div class="flex items-center gap-1.5 mb-2"><i data-lucide="plane" class="w-3 h-3" style="color: #3b82f6;"></i> <span class="text-xs opacity-70">Flights</span>
-        </div>
-        <div class="text-sm font-bold font-mono" id="preview-flights">
-         9,847
-        </div>
-        <div class="text-xs opacity-50 mt-1">
-         now
-        </div>
-       </div>
-       <div class="glass rounded-lg p-3 card-hover shrink-0 fade-in" style="animation-delay:0.4s; min-width:140px;">
-        <div class="flex items-center gap-1.5 mb-2"><i data-lucide="cloud" class="w-3 h-3" style="color: #22c55e;"></i> <span class="text-xs opacity-70">CO₂</span>
-        </div>
-        <div class="text-sm font-bold font-mono" id="preview-co2">
-         36.8B
-        </div>
-        <div class="text-xs opacity-50 mt-1">
-         tonnes
-        </div>
-       </div>
-       <div class="glass rounded-lg p-3 card-hover shrink-0 fade-in" style="animation-delay:0.5s; min-width:140px;">
-        <div class="flex items-center gap-1.5 mb-2"><i data-lucide="wifi" class="w-3 h-3" style="color: #06b6d4;"></i> <span class="text-xs opacity-70">Internet</span>
-        </div>
-        <div class="text-sm font-bold font-mono" id="preview-inet">
-         5.42B
-        </div>
-        <div class="text-xs opacity-50 mt-1">
-         users
-        </div>
-       </div>
-      </div>
-     </div>
-    </section><!-- Features Section -->
-    <section class="relative w-full py-16 px-4">
-     <div class="max-w-7xl mx-auto">
-      <h2 class="text-3xl font-bold text-center mb-12">Command Center Features</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-       <div class="glass rounded-lg p-6 card-hover fade-in" style="animation-delay:0s;"><i data-lucide="zap" class="w-6 h-6 mb-3" style="color: var(--accent);"></i>
-        <h3 class="font-bold mb-2">Real-time Tracking</h3>
-        <p class="text-sm opacity-70">Live data feeds updating every second with global metrics and events.</p>
-       </div>
-       <div class="glass rounded-lg p-6 card-hover fade-in" style="animation-delay:0.1s;"><i data-lucide="bar-chart-3" class="w-6 h-6 mb-3" style="color: var(--accent);"></i>
-        <h3 class="font-bold mb-2">Advanced Analytics</h3>
-        <p class="text-sm opacity-70">Interactive charts, trends, and breakdowns for deep data insights.</p>
-       </div>
-       <div class="glass rounded-lg p-6 card-hover fade-in" style="animation-delay:0.2s;"><i data-lucide="globe" class="w-6 h-6 mb-3" style="color: var(--accent);"></i>
-        <h3 class="font-bold mb-2">Global Monitoring</h3>
-        <p class="text-sm opacity-70">Track planetary events and metrics across all seven continents.</p>
-       </div>
-       <div class="glass rounded-lg p-6 card-hover fade-in" style="animation-delay:0.3s;"><i data-lucide="map-pin" class="w-6 h-6 mb-3" style="color: var(--accent);"></i>
-        <h3 class="font-bold mb-2">Interactive Maps</h3>
-        <p class="text-sm opacity-70">Visual representations with heatmaps and geospatial data layers.</p>
-       </div>
-       <div class="glass rounded-lg p-6 card-hover fade-in" style="animation-delay:0.4s;"><i data-lucide="bell" class="w-6 h-6 mb-3" style="color: var(--accent);"></i>
-        <h3 class="font-bold mb-2">Smart Alerts</h3>
-        <p class="text-sm opacity-70">Intelligent notifications for anomalies and critical events.</p>
-       </div>
-       <div class="glass rounded-lg p-6 card-hover fade-in" style="animation-delay:0.5s;"><i data-lucide="lightbulb" class="w-6 h-6 mb-3" style="color: var(--accent);"></i>
-        <h3 class="font-bold mb-2">Live Insights</h3>
-        <p class="text-sm opacity-70">AI-powered analysis and predictive analytics for future trends.</p>
-       </div>
-      </div>
-     </div>
-    </section><!-- Footer -->
-    <section class="relative w-full border-t p-6" style="border-color: var(--border);">
-     <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center gap-2">
-       <div class="w-2 h-2 rounded-full pulse-dot" style="background: #22c55e;"></div><span class="text-xs" style="color: var(--text-dim);">All systems operational</span>
-      </div>
-      <div class="flex items-center gap-4"><span class="text-xs" style="color: var(--text-dim);">API Uptime: 99.97%</span> <span class="text-xs" style="color: var(--text-dim);">v2.1.0</span>
-      </div>
-     </div>
-    </section>
-   </div><!-- App View (Hidden initially) -->
-   <div id="app-view" class="hidden w-full h-full flex overflow-hidden"><!-- Sidebar Desktop -->
-    <aside class="sidebar-desktop w-16 lg:w-56 h-full flex flex-col py-4 px-2 lg:px-3 gap-1 z-20 shrink-0 border-r" style="border-color: var(--border);">
-     <div class="flex items-center gap-2 px-2 mb-6">
-      <div class="w-8 h-8 rounded-lg flex items-center justify-center glow-pulse" style="background: linear-gradient(135deg, var(--accent), var(--accent2));"><i data-lucide="globe" class="w-4 h-4 text-white"></i>
-      </div><span class="hidden lg:block font-semibold text-sm" id="app-title">PulseEarth</span>
-     </div>
-     <nav class="flex flex-col gap-1" id="sidebar-nav"></nav>
-     <div class="mt-auto">
-      <div id="theme-switcher" class="flex flex-col gap-1 px-2"></div>
-     </div>
-    </aside><!-- Main Content -->
-    <main class="main-content flex-1 h-full overflow-y-auto scrollbar-hide p-3 lg:p-6 relative" id="main-area"><!-- Topbar -->
-     <header class="glass rounded-xl px-4 py-2.5 flex items-center gap-3 mb-5 sticky top-0 z-10"><i data-lucide="search" class="w-4 h-4" style="color: var(--text-dim);"></i> <input type="text" placeholder="Search..." class="bg-transparent outline-none flex-1 text-sm" style="color: var(--text);" aria-label="Search">
-      <div class="flex items-center gap-3">
-       <div class="flex items-center gap-1.5">
-        <div class="w-2 h-2 rounded-full pulse-dot" style="background: #22c55e;"></div><span class="text-xs hidden sm:inline" style="color: var(--text-dim);">Live</span>
-       </div><button class="relative" aria-label="Notifications"> <i data-lucide="bell" class="w-4 h-4" style="color: var(--text-dim);"></i> <span class="absolute -top-1 -right-1 w-2 h-2 rounded-full" style="background: var(--accent);"></span> </button>
-      </div>
-     </header><!-- Module Content -->
-     <div id="module-content"></div>
-    </main><!-- Right Activity Panel (desktop only) -->
-    <aside class="hidden xl:flex w-64 h-full flex-col p-3 gap-3 shrink-0 overflow-y-auto scrollbar-hide border-l" style="border-color: var(--border);" id="right-panel">
-     <div class="glass rounded-xl p-4">
-      <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">ACTIVITY FEED</h3>
-      <div id="activity-feed" class="flex flex-col gap-2"></div>
-     </div>
-    </aside>
+    </div><!-- Categories -->
+    <div class="px-5 mb-4">
+     <div id="categories" class="flex gap-2 overflow-x-auto no-scroll py-1"></div>
+    </div><!-- Counter cards -->
+    <div id="counter-feed" class="px-5 space-y-3 pb-6"></div>
+   </div><!-- Bottom nav -->
+   <div class="bottom-nav fixed bottom-0 left-0 right-0 flex justify-around py-3 z-50"><button id="nav-home" class="flex flex-col items-center gap-1 text-indigo-400 transition"><i data-lucide="home" style="width:20px;height:20px"></i><span class="text-[10px]">Home</span></button> <button id="nav-cat" class="flex flex-col items-center gap-1 text-gray-500 transition"><i data-lucide="grid" style="width:20px;height:20px"></i><span class="text-[10px]">Categories</span></button> <button id="nav-explore" class="flex flex-col items-center gap-1 text-gray-500 transition"><i data-lucide="compass" style="width:20px;height:20px"></i><span class="text-[10px]">Explore</span></button> <button id="nav-fav" class="flex flex-col items-center gap-1 text-gray-500 transition"><i data-lucide="heart" style="width:20px;height:20px"></i><span class="text-[10px]">Favorites</span></button>
+   </div><!-- Fullscreen overlay -->
+   <div id="fullscreen" class="fullscreen-overlay">
+    <button id="fs-close" class="absolute top-6 right-6 text-gray-400"><i data-lucide="x" style="width:28px;height:28px"></i></button>
+    <p id="fs-title" class="text-gray-400 text-lg mb-4"></p>
+    <div id="fs-counter" class="mono text-5xl md:text-7xl font-bold text-white text-center px-4"></div>
+    <div class="flex items-center gap-2 mt-4">
+     <span class="w-2 h-2 rounded-full bg-green-400 pulse-live"></span> <span class="text-xs text-green-400 uppercase tracking-wider">Live</span>
+      
+    </div>
+    <p class="absolute bottom-6 text-[11px] text-gray-500 tracking-[0.2em] uppercase">
+      Developed By ~ Shankar Prasad Pyke 
+    </p>
    </div>
-  </div><!-- Bottom Nav Mobile -->
-  <div class="bottom-nav fixed bottom-0 left-0 right-0 glass z-30 px-2 py-2 flex justify-around items-center border-t" style="border-color: var(--border);" id="bottom-nav"></div>
+  </div>
   <script>
-const modules = {
-  population: { icon: 'users', label: 'Population', color: '#a855f7' },
-  environment: { icon: 'leaf', label: 'Environment', color: '#22c55e' },
-  finance: { icon: 'trending-up', label: 'Finance', color: '#f59e0b' },
-  earthquakes: { icon: 'activity', label: 'Earthquakes', color: '#ef4444' },
-  weather: { icon: 'cloud', label: 'Weather', color: '#3b82f6' },
-  space: { icon: 'rocket', label: 'Space', color: '#06b6d4' }
-};
+    // Data
+    const counters = [
+      { id: 'pop', icon: '🌍', title: 'World Population', cat: 'world', base: 8194000000, rate: 2.5, prefix: '', suffix: '' },
+      { id: 'births', icon: '👶', title: 'Births Today', cat: 'world', base: 284000, rate: 4.3, prefix: '', suffix: '' },
+      { id: 'deaths', icon: '💀', title: 'Deaths Today', cat: 'world', base: 118000, rate: 1.8, prefix: '', suffix: '' },
+      { id: 'emails', icon: '📧', title: 'Emails Sent Today', cat: 'internet', base: 124847000000, rate: 3800, prefix: '', suffix: '' },
+      { id: 'google', icon: '🔍', title: 'Google Searches', cat: 'internet', base: 8500000000, rate: 2200, prefix: '', suffix: '' },
+      { id: 'yt', icon: '▶️', title: 'YouTube Videos Watched', cat: 'internet', base: 1200000000, rate: 1400, prefix: '', suffix: '' },
+      { id: 'gamers', icon: '🎮', title: 'Active Gamers Right Now', cat: 'gaming', base: 3492222, rate: 12, prefix: '', suffix: '' },
+      { id: 'debt', icon: '💰', title: 'Global Debt', cat: 'economy', base: 317483194003211, rate: 12000, prefix: '$', suffix: '' },
+      { id: 'ai', icon: '🤖', title: 'AI Prompts Generated', cat: 'ai', base: 892000000, rate: 680, prefix: '', suffix: '' },
+      { id: 'sat', icon: '🛰️', title: 'Satellites in Orbit', cat: 'space', base: 10532, rate: 0.001, prefix: '', suffix: '' },
+      { id: 'flights', icon: '✈️', title: 'Flights Currently Flying', cat: 'world', base: 12847, rate: 0.5, prefix: '', suffix: '' },
+      { id: 'co2', icon: '🌫️', title: 'CO₂ Emitted Today (tons)', cat: 'environment', base: 110000000, rate: 1200, prefix: '', suffix: '' },
+      { id: 'btc', icon: '₿', title: 'Bitcoin Transactions', cat: 'economy', base: 742000, rate: 4.2, prefix: '', suffix: '' },
+      { id: 'coffee', icon: '☕', title: 'Cups of Coffee Drunk', cat: 'world', base: 2800000000, rate: 950, prefix: '', suffix: '' },
+      { id: 'insta', icon: '❤️', title: 'Instagram Likes', cat: 'internet', base: 5200000000, rate: 3200, prefix: '', suffix: '' },
+      { id: 'netflix', icon: '🎬', title: 'Minutes Watched on Netflix', cat: 'internet', base: 420000000, rate: 380, prefix: '', suffix: '' },
+      { id: 'trees_cut', icon: '🪓', title: 'Trees Cut Down Today', cat: 'environment', base: 41000000, rate: 28, prefix: '', suffix: '' },
+      { id: 'trees_plant', icon: '🌱', title: 'Trees Planted Today', cat: 'environment', base: 14000000, rate: 8, prefix: '', suffix: '' },
+      { id: 'iss', icon: '🚀', title: 'ISS Speed (km/h)', cat: 'space', base: 27600, rate: 0, prefix: '', suffix: '' },
+      { id: 'plastic', icon: '🌊', title: 'Ocean Plastic Added (kg)', cat: 'environment', base: 22000000, rate: 15, prefix: '', suffix: '' },
+      { id: 'packages', icon: '📦', title: 'Packages Delivered Today', cat: 'world', base: 68000000, rate: 42, prefix: '', suffix: '' },
+      { id: 'food', icon: '🍕', title: 'Food Orders Made Today', cat: 'world', base: 320000000, rate: 180, prefix: '', suffix: '' },
+      { id: 'energy', icon: '⚡', title: 'Electricity Used (MWh)', cat: 'energy', base: 67000000, rate: 520, prefix: '', suffix: '' },
+    ];
 
-const themes = [
-  { id: 'theme-cyber', label: 'Cyber', color: '#a855f7' },
-  { id: 'theme-amoled', label: 'AMOLED', color: '#22d3ee' },
-  { id: 'theme-space', label: 'Space', color: '#3b82f6' },
-  { id: 'theme-matrix', label: 'Matrix', color: '#22c55e' },
-  { id: 'theme-white', label: 'White', color: '#7c3aed' }
-];
+    const categories = [
+      { id: 'all', label: '🌐 All' },
+      { id: 'world', label: '🌍 World' },
+      { id: 'space', label: '📡 Space' },
+      { id: 'gaming', label: '🎮 Gaming' },
+      { id: 'economy', label: '💰 Economy' },
+      { id: 'environment', label: '🌱 Environment' },
+      { id: 'ai', label: '🤖 AI' },
+      { id: 'internet', label: '📱 Internet' },
+      { id: 'energy', label: '⚡ Energy' },
+    ];
 
-let currentModule = null;
-let isAppView = false;
+    let activeCat = 'all';
+    let currentValues = {};
+    let startTime = Date.now();
+    let favorites = new Set(
+      JSON.parse(localStorage.getItem('favorites') || '[]')
+    );
 
-function formatNum(n) {
-  if (n >= 1e9) return (n / 1e9).toFixed(3) + 'B';
-  if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return n.toLocaleString();
-  return n.toString();
-}
+    // Init values
+    counters.forEach(c => { currentValues[c.id] = c.base; });
 
-function enterApp() {
-  document.getElementById('landing-view').classList.add('hidden');
-  document.getElementById('app-view').classList.remove('hidden');
-  isAppView = true;
-  switchModule('population');
-  renderSidebar();
-  renderActivity();
-  initParticles();
-  lucide.createIcons();
-}
+    // Format number
+    function fmt(n, prefix = '', suffix = '') {
+      return prefix + Math.floor(n).toLocaleString('en-US') + suffix;
+    }
 
-function scrollToPreview() {
-  document.getElementById('landing-view').scrollIntoView({ behavior: 'smooth' });
-}
+    // Create stars
+    function createStars() {
+      const el = document.getElementById('stars');
+      for (let i = 0; i < 30; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        s.style.left = Math.random() * 100 + '%';
+        s.style.top = Math.random() * 100 + '%';
+        s.style.animationDuration = (8 + Math.random() * 12) + 's';
+        s.style.animationDelay = Math.random() * 10 + 's';
+        el.appendChild(s);
+      }
+    }
 
-function renderSidebar() {
-  const nav = document.getElementById('sidebar-nav');
-  nav.innerHTML = Object.entries(modules).map(([id, m]) => `
-    <button class="sidebar-item flex items-center gap-3 px-3 py-2 rounded-lg w-full text-left ${currentModule === id ? 'active' : ''}" onclick="switchModule('${id}')">
-      <i data-lucide="${m.icon}" class="w-4 h-4 shrink-0"></i>
-      <span class="hidden lg:block text-sm">${m.label}</span>
-    </button>
-  `).join('');
+    // Render categories
+    function renderCategories() {
+      const el = document.getElementById('categories');
+      el.innerHTML = categories.map(c => 
+        `<div class="category-chip ${c.id === activeCat ? 'active' : ''}" data-cat="${c.id}">${c.label}</div>`
+      ).join('');
+      el.querySelectorAll('.category-chip').forEach(chip => {
+        chip.onclick = () => { activeCat = chip.dataset.cat; renderCategories(); renderFeed(); };
+      });
+    }
 
-  const ts = document.getElementById('theme-switcher');
-  ts.innerHTML = `<div class="flex gap-1 flex-wrap justify-center lg:justify-start">${themes.map(t => `<button onclick="setTheme('${t.id}')" class="w-4 h-4 rounded-full border border-white/10" style="background:${t.color};" aria-label="${t.label} theme"></button>`).join('')}</div>`;
 
-  document.getElementById('bottom-nav').innerHTML = Object.entries(modules).slice(0, 5).map(([id, m]) => `
-    <button class="flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg ${currentModule === id ? 'opacity-100' : 'opacity-50'}" onclick="switchModule('${id}')">
-      <i data-lucide="${m.icon}" class="w-4 h-4"></i>
-      <span class="text-[10px]">${m.label.slice(0, 5)}</span>
-    </button>
-  `).join('');
+// Render feed
+function renderFeed() {
+  const el = document.getElementById('counter-feed');
+  const filtered =
+    activeCat === 'all'
+      ? counters
+      : counters.filter(c => c.cat === activeCat);
 
-  lucide.createIcons();
-}
+  el.innerHTML = filtered
+    .map(
+      (c, i) => `
+      <div class="glass-card p-5 animate-float cursor-pointer counter-card"
+           style="animation-delay:${i * 0.05}s"
+           data-counter-id="${c.id}">
 
-function switchModule(id) {
-  currentModule = id;
-  renderSidebar();
-  renderModule();
-}
+        <div class="flex items-start justify-between">
 
-function renderModule() {
-  const content = document.getElementById('module-content');
-  const m = modules[currentModule];
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-lg">${c.icon}</span>
+              <span class="text-sm text-gray-300 font-medium">${c.title}</span>
+            </div>
 
-  if (currentModule === 'population') {
-    content.innerHTML = `
-      <div class="space-y-4">
-        <div class="glass rounded-2xl p-6 glow-border fade-in" style="animation-delay:0s;">
-          <div class="flex items-center gap-3 mb-4">
-            <i data-lucide="users" class="w-6 h-6" style="color: ${m.color};"></i>
-            <h1 class="text-2xl font-bold">Global Demographics</h1>
+            <div class="mono text-2xl font-bold mt-2" id="card-${c.id}">
+              ${fmt(currentValues[c.id], c.prefix, c.suffix)}
+            </div>
+
+            <p class="text-xs text-gray-500 mt-1">
+              ${
+                c.rate > 0
+                  ? '+' + Math.round(c.rate * 60).toLocaleString() + '/min'
+                  : 'Constant'
+              }
+            </p>
           </div>
-          <div class="text-5xl lg:text-6xl font-bold glow-text font-mono" id="pop-counter">8.05B</div>
-          <div class="grid grid-cols-3 gap-2 mt-6 text-center">
-            <div><div class="text-sm opacity-70">Growth</div><div class="text-lg font-bold">+2.4%</div></div>
-            <div><div class="text-sm opacity-70">Births/min</div><div class="text-lg font-bold">217</div></div>
-            <div><div class="text-sm opacity-70">Deaths/min</div><div class="text-lg font-bold">91</div></div>
-          </div>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.1s;">
-            <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">POPULATION TREND</h3>
-            <div class="h-32 flex items-end gap-1">${Array.from({length:20},(_,i)=>`<div class="flex-1 rounded-t" style="height:${30+Math.random()*70}%; background:linear-gradient(to top,var(--accent),var(--accent2)); opacity:${0.4+i*0.03};"></div>`).join('')}</div>
-          </div>
-          <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.2s;">
-            <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">REGIONAL SHARE</h3>
-            ${['Asia 59%', 'Africa 18%', 'Europe 10%', 'Americas 13%'].map((r, i) => `<div class="flex items-center gap-2 mb-2"><div class="h-2 rounded-full" style="width:${[59, 18, 10, 13][i]}%; background:var(--accent); opacity:${1 - i * 0.2};"></div><span class="text-xs">${r}</span></div>`).join('')}
-          </div>
-        </div>
+          <div class="flex flex-col items-center justify-start ml-3">
 
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.3s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">TOP COUNTRIES</h3>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between"><span>India</span><span class="font-mono">1.43B</span></div>
-            <div class="flex justify-between opacity-70"><span>China</span><span class="font-mono">1.42B</span></div>
-            <div class="flex justify-between opacity-60"><span>USA</span><span class="font-mono">342M</span></div>
-            <div class="flex justify-between opacity-50"><span>Indonesia</span><span class="font-mono">278M</span></div>
+            <button class="heart-btn p-2 rounded-lg hover:bg-white/10 transition"
+                    data-heart-id="${c.id}">
+
+                    <span class="favorite-heart"
+                          style="color:${favorites.has(c.id) ? '#ef4444' : '#666'}">
+                      ♥
+                    </span>
+
+            </button>
+
+            <div class="relative flex items-center justify-center mt-1">
+              
+              <span class="absolute w-3 h-3 rounded-full bg-green-400 opacity-30 animate-ping"></span>
+
+              <span class="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_12px_rgba(74,222,128,1)]"></span>
+
+            </div>
+
           </div>
         </div>
       </div>
-    `;
-  } else if (currentModule === 'environment') {
-    content.innerHTML = `
-      <div class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="glass rounded-2xl p-6 glow-border fade-in" style="animation-delay:0s;">
-            <div class="flex items-center gap-3 mb-4">
-              <i data-lucide="cloud" class="w-6 h-6" style="color: ${m.color};"></i>
-              <h2 class="text-xl font-bold">CO₂ Emissions</h2>
-            </div>
-            <div class="text-4xl font-bold font-mono">36.8B</div>
-            <div class="text-sm opacity-70 mt-2">Tonnes/Year | +0.5% YoY</div>
-          </div>
-          <div class="glass rounded-2xl p-6 glow-border fade-in" style="animation-delay:0.1s;">
-            <div class="flex items-center gap-3 mb-4">
-              <i data-lucide="thermometer" class="w-6 h-6" style="color: ${m.color};"></i>
-              <h2 class="text-xl font-bold">Global Temp</h2>
-            </div>
-            <div class="text-4xl font-bold font-mono">+1.28°C</div>
-            <div class="text-sm opacity-70 mt-2">Above pre-industrial</div>
-          </div>
-        </div>
+    `
+    )
+    .join('');
 
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.2s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">ENVIRONMENTAL INDICATORS</h3>
-          <div class="space-y-3">
-            <div>
-              <div class="flex justify-between mb-1 text-xs">
-                <span>Forest Loss</span>
-                <span style="color: #ef4444;">10.2M hectares</span>
-              </div>
-              <div class="w-full h-2 rounded bg-white/5"><div class="h-full rounded" style="width:42%; background:#ef4444;"></div></div>
-            </div>
-            <div>
-              <div class="flex justify-between mb-1 text-xs">
-                <span>Renewable Energy</span>
-                <span style="color: #22c55e;">28%</span>
-              </div>
-              <div class="w-full h-2 rounded bg-white/5"><div class="h-full rounded" style="width:28%; background:#22c55e;"></div></div>
-            </div>
-            <div>
-              <div class="flex justify-between mb-1 text-xs">
-                <span>Ocean Acidification</span>
-                <span style="color: #3b82f6;">8.1 pH</span>
-              </div>
-              <div class="w-full h-2 rounded bg-white/5"><div class="h-full rounded" style="width:35%; background:#3b82f6;"></div></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.3s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">CLIMATE ALERTS</h3>
-          <div class="space-y-2 text-sm">
-            <div class="flex gap-2 items-start"><i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0 mt-0.5" style="color: #ef4444;"></i><span>Heatwave warning: Southern Europe, +8°C above avg</span></div>
-            <div class="flex gap-2 items-start"><i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0 mt-0.5" style="color: #f59e0b;"></i><span>Wildfire risk: Elevated across North America</span></div>
-            <div class="flex gap-2 items-start"><i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0 mt-0.5" style="color: #3b82f6;"></i><span>Monsoon onset: Expected within 5 days</span></div>
-          </div>
-        </div>
-      </div>
-    `;
-  } else if (currentModule === 'finance') {
-    content.innerHTML = `
-      <div class="space-y-4">
-        <div class="glass rounded-2xl p-6 glow-border fade-in" style="animation-delay:0s;">
-          <div class="flex items-center gap-3 mb-4">
-            <i data-lucide="trending-up" class="w-6 h-6" style="color: ${m.color};"></i>
-            <h1 class="text-2xl font-bold">Financial Markets</h1>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-            <div><div class="text-xs opacity-70">Bitcoin</div><div class="text-lg font-bold font-mono">$42,847</div><div class="text-xs text-green-400">+3.2%</div></div>
-            <div><div class="text-xs opacity-70">Ethereum</div><div class="text-lg font-bold font-mono">$2,384</div><div class="text-xs text-green-400">+2.1%</div></div>
-            <div><div class="text-xs opacity-70">S&P 500</div><div class="text-lg font-bold font-mono">5,921</div><div class="text-xs text-green-400">+1.8%</div></div>
-            <div><div class="text-xs opacity-70">Gold</div><div class="text-lg font-bold font-mono">$2,089/oz</div><div class="text-xs text-red-400">-0.4%</div></div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.1s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">MARKET MOVERS</h3>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between items-center"><span>📈 Tech Stocks Surge</span><span class="text-green-400">+4.2%</span></div>
-            <div class="flex justify-between items-center"><span>🔴 Energy Sector</span><span class="text-red-400">-1.8%</span></div>
-            <div class="flex justify-between items-center"><span>💰 USD Strength</span><span class="text-green-400">+0.6%</span></div>
-            <div class="flex justify-between items-center"><span>🏠 Real Estate</span><span class="text-yellow-400">Stable</span></div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.2s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">CRYPTO HEATMAP</h3>
-          <div class="grid grid-cols-2 gap-2">
-            <div class="p-2 rounded text-center text-xs" style="background:rgba(34,197,94,0.3); color:#22c55e;">BTC +5.2%</div>
-            <div class="p-2 rounded text-center text-xs" style="background:rgba(59,130,246,0.3); color:#3b82f6;">ETH +2.8%</div>
-            <div class="p-2 rounded text-center text-xs" style="background:rgba(245,158,11,0.3); color:#f59e0b;">SOL +12.1%</div>
-            <div class="p-2 rounded text-center text-xs" style="background:rgba(239,68,68,0.3); color:#ef4444;">XRP -1.4%</div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.3s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">FEAR & GREED INDEX</h3>
-          <div class="w-full h-24 flex items-center justify-center rounded" style="background:linear-gradient(90deg, #ef4444 0%, #f59e0b 33%, #eab308 66%, #22c55e 100%);">
-            <div class="text-center"><div class="text-2xl font-bold">68</div><div class="text-xs opacity-70">GREEDY</div></div>
-          </div>
-        </div>
-      </div>
-    `;
-  } else if (currentModule === 'earthquakes') {
-    content.innerHTML = `
-      <div class="space-y-4">
-        <div class="glass rounded-2xl p-6 glow-border fade-in" style="animation-delay:0s;">
-          <div class="flex items-center gap-3 mb-4">
-            <i data-lucide="activity" class="w-6 h-6" style="color: ${m.color};"></i>
-            <h1 class="text-2xl font-bold">Seismic Activity</h1>
-          </div>
-          <div class="grid grid-cols-3 gap-3 text-center">
-            <div><div class="text-sm opacity-70">Last 24h</div><div class="text-3xl font-bold">47</div></div>
-            <div><div class="text-sm opacity-70">Last 7d</div><div class="text-3xl font-bold">328</div></div>
-            <div><div class="text-sm opacity-70">Mag 5+</div><div class="text-3xl font-bold">3</div></div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.1s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">RECENT EARTHQUAKES</h3>
-          <div class="space-y-2 text-sm">
-            <div class="flex items-center justify-between p-2 rounded" style="background:rgba(239,68,68,0.1);">
-              <div><div class="font-mono">5.8 mag</div><div class="text-xs opacity-70">Japan (43 min ago)</div></div>
-              <span class="text-xs">⚠️</span>
-            </div>
-            <div class="flex items-center justify-between p-2 rounded" style="background:rgba(239,68,68,0.1);">
-              <div><div class="font-mono">4.2 mag</div><div class="text-xs opacity-70">Chile (2 hrs ago)</div></div>
-              <span class="text-xs">↗️</span>
-            </div>
-            <div class="flex items-center justify-between p-2 rounded" style="background:rgba(245,158,11,0.1);">
-              <div><div class="font-mono">3.9 mag</div><div class="text-xs opacity-70">California (4 hrs ago)</div></div>
-              <span class="text-xs">→</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.2s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">RISK ZONES</h3>
-          <div class="space-y-2">
-            <div><div class="text-xs font-medium mb-1">Ring of Fire</div><div class="w-full h-2 rounded bg-white/5"><div class="h-full rounded" style="width:95%; background:#ef4444;"></div></div></div>
-            <div><div class="text-xs font-medium mb-1">Alpine Belt</div><div class="w-full h-2 rounded bg-white/5"><div class="h-full rounded" style="width:72%; background:#f59e0b;"></div></div></div>
-            <div><div class="text-xs font-medium mb-1">Mid-Ocean Ridges</div><div class="w-full h-2 rounded bg-white/5"><div class="h-full rounded" style="width:65%; background:#f59e0b;"></div></div></div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.3s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">TSUNAMI ALERTS</h3>
-          <div class="p-3 rounded border-l-4" style="border-color:#3b82f6; background:rgba(59,130,246,0.1);">
-            <div class="text-xs"><strong>Status:</strong> No active warnings</div>
-            <div class="text-xs opacity-70 mt-1">Last update: 2 mins ago</div>
-          </div>
-        </div>
-      </div>
-    `;
-  } else if (currentModule === 'weather') {
-    content.innerHTML = `
-      <div class="space-y-4">
-        <div class="glass rounded-2xl p-6 glow-border fade-in" style="animation-delay:0s;">
-          <div class="flex items-center gap-3 mb-4">
-            <i data-lucide="cloud" class="w-6 h-6" style="color: ${m.color};"></i>
-            <h1 class="text-2xl font-bold">Global Weather</h1>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-            <div><div class="text-xs opacity-70">Storms</div><div class="text-2xl font-bold">342</div></div>
-            <div><div class="text-xs opacity-70">Hurricanes</div><div class="text-2xl font-bold">2</div></div>
-            <div><div class="text-xs opacity-70">Tornadoes</div><div class="text-2xl font-bold">18</div></div>
-            <div><div class="text-xs opacity-70">AQI Avg</div><div class="text-2xl font-bold">62</div></div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.1s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">WEATHER ALERTS</h3>
-          <div class="space-y-2 text-sm">
-            <div class="flex gap-2"><i data-lucide="cloud-lightning" class="w-4 h-4 flex-shrink-0 mt-0.5" style="color:#f59e0b;"></i><span>Severe thunderstorms: Central USA</span></div>
-            <div class="flex gap-2"><i data-lucide="cloud-rain" class="w-4 h-4 flex-shrink-0 mt-0.5" style="color:#3b82f6;"></i><span>Heavy rainfall: South Asia</span></div>
-            <div class="flex gap-2"><i data-lucide="wind" class="w-4 h-4 flex-shrink-0 mt-0.5" style="color:#06b6d4;"></i><span>High winds: Atlantic coast</span></div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.2s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">TEMPERATURE MAP</h3>
-          <div class="h-32 rounded-lg overflow-hidden" style="background:linear-gradient(90deg, #3b82f6 0%, #06b6d4 25%, #eab308 50%, #f59e0b 75%, #ef4444 100%);"></div>
-          <div class="flex justify-between mt-2 text-xs">
-            <span>-20°C</span><span>0°C</span><span>15°C</span><span>30°C</span><span>50°C</span>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.3s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">HURRICANE TRACKER</h3>
-          <div class="space-y-2 text-sm">
-            <div class="flex items-center justify-between p-2 rounded" style="background:rgba(239,68,68,0.1);">
-              <div><div class="font-mono">Hurricane Zeta</div><div class="text-xs opacity-70">Cat 4 - Atlantic</div></div>
-              <span>🌀</span>
-            </div>
-            <div class="flex items-center justify-between p-2 rounded" style="background:rgba(245,158,11,0.1);">
-              <div><div class="font-mono">Tropical Storm Alpha</div><div class="text-xs opacity-70">Forming - Pacific</div></div>
-              <span>⛈️</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  } else if (currentModule === 'space') {
-    content.innerHTML = `
-      <div class="space-y-4">
-        <div class="glass rounded-2xl p-6 glow-border fade-in" style="animation-delay:0s;">
-          <div class="flex items-center gap-3 mb-4">
-            <i data-lucide="rocket" class="w-6 h-6" style="color: ${m.color};"></i>
-            <h1 class="text-2xl font-bold">Space Observatory</h1>
-          </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-            <div><div class="text-xs opacity-70">ISS Status</div><div class="text-xl font-bold">Active</div></div>
-            <div><div class="text-xs opacity-70">Solar Activity</div><div class="text-xl font-bold">Moderate</div></div>
-            <div><div class="text-xs opacity-70">Moon Phase</div><div class="text-xl font-bold">Waning</div></div>
-            <div><div class="text-xs opacity-70">Asteroid Risk</div><div class="text-xl font-bold">Low</div></div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.1s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">SOLAR ACTIVITY</h3>
-          <div class="space-y-2">
-            <div><div class="text-xs mb-1">Solar Wind Speed</div><div class="font-mono text-lg">456 km/s</div></div>
-            <div><div class="text-xs mb-1">Sunspot Count</div><div class="font-mono text-lg">147</div></div>
-            <div><div class="text-xs mb-1">X-ray Flux</div><div class="font-mono text-lg">B2.1</div></div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.2s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">UPCOMING LAUNCHES</h3>
-          <div class="space-y-2 text-sm">
-            <div class="flex items-center justify-between p-2 rounded" style="background:rgba(34,197,94,0.1);">
-              <div><div class="font-mono">SpaceX Starlink-47</div><div class="text-xs opacity-70">In 2 hours</div></div>
-              <span class="text-xs">🚀</span>
-            </div>
-            <div class="flex items-center justify-between p-2 rounded" style="background:rgba(59,130,246,0.1);">
-              <div><div class="font-mono">Arianespace Ariane 6</div><div class="text-xs opacity-70">In 18 hours</div></div>
-              <span class="text-xs">🚀</span>
-            </div>
-            <div class="flex items-center justify-between p-2 rounded" style="background:rgba(168,85,247,0.1);">
-              <div><div class="font-mono">JAXA H3 Mission 2</div><div class="text-xs opacity-70">In 3 days</div></div>
-              <span class="text-xs">🚀</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="glass rounded-xl p-4 fade-in" style="animation-delay:0.3s;">
-          <h3 class="text-xs font-medium mb-3" style="color: var(--text-dim);">ASTEROID TRACKER</h3>
-          <div class="p-3 rounded border-l-4" style="border-color:#22c55e; background:rgba(34,197,94,0.1);">
-            <div class="text-xs"><strong>NEOs Tracked:</strong> 35,000+</div>
-            <div class="text-xs mt-1">Risk Level: <strong>Low</strong></div>
-            <div class="text-xs opacity-70 mt-1">Next close approach: 2.3M km away</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  lucide.createIcons();
-}
-
-function renderActivity() {
-  const feed = document.getElementById('activity-feed');
-  if (!feed) return;
-  const events = ['🌍 Population +2,847', '⚡ Quake M3.2 Japan', '✈️ 12 flights departed', '🌡️ Heatwave alert EU', '💰 BTC +$142'];
-  feed.innerHTML = events.map(e => `<div class="text-xs py-1.5 border-b" style="border-color:var(--border); color:var(--text-dim);">${e}</div>`).join('');
-}
-
-function setTheme(t) {
-  document.body.className = 'h-full ' + t;
-  document.body.style.background = 'var(--bg)';
-}
-
-function initParticles() {
-  const c = document.getElementById('particles');
-  c.innerHTML = '';
-  for (let i = 0; i < 15; i++) {
-    const d = document.createElement('div');
-    d.className = 'absolute rounded-full';
-    d.style.cssText = `width:${2 + Math.random() * 4}px;height:${2 + Math.random() * 4}px;background:var(--accent);opacity:${0.1 + Math.random() * 0.2};left:${Math.random() * 100}%;top:${Math.random() * 100}%;animation:float ${3 + Math.random() * 4}s ease-in-out infinite;animation-delay:${Math.random() * 3}s;`;
-    c.appendChild(d);
-  }
-}
-
-const defaultConfig = { app_title: 'PulseEarth', landing_title: 'PulseEarth', landing_subtitle: 'A live window into the world.', background_color: '#0a0a0f', surface_color: '#1a1a2e', text_color: '#e2e8f0', primary_color: '#a855f7', secondary_color: '#6366f1', font_family: 'Outfit', font_size: 14 };
-
-function applyConfig(config) {
-  const t = document.getElementById('app-title');
-  if (t) t.textContent = config.app_title || defaultConfig.app_title;
-  const lt = document.getElementById('landing-title');
-  if (lt) lt.textContent = config.landing_title || defaultConfig.landing_title;
-  const ls = document.getElementById('landing-subtitle');
-  if (ls) ls.textContent = config.landing_subtitle || defaultConfig.landing_subtitle;
-  document.documentElement.style.setProperty('--bg', config.background_color || defaultConfig.background_color);
-  document.documentElement.style.setProperty('--accent', config.primary_color || defaultConfig.primary_color);
-  document.documentElement.style.setProperty('--accent2', config.secondary_color || defaultConfig.secondary_color);
-  document.documentElement.style.setProperty('--text', config.text_color || defaultConfig.text_color);
-  const font = config.font_family || defaultConfig.font_family;
-  document.body.style.fontFamily = `${font}, Outfit, sans-serif`;
-}
-
-applyConfig(defaultConfig);
-initParticles();
 lucide.createIcons();
 
-// Start live preview animations
-let popVal = 8045311447;
-setInterval(() => {
-  popVal += Math.floor(Math.random() * 2.5);
-  const el = document.getElementById('preview-pop');
-  if (el) el.textContent = formatNum(popVal);
-}, 1000);
+  // Card click
+  el.querySelectorAll('.counter-card').forEach(card => {
+    card.addEventListener('click', () => {
+      openFullscreen(card.dataset.counterId);
+    });
+  });
+
+  // Favorite click
+el.querySelectorAll('.heart-btn').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+
+    const id = btn.dataset.heartId;
+
+    const heart = btn.querySelector('.favorite-heart');
+
+    if (favorites.has(id)) {
+      favorites.delete(id);
+      heart.style.color = '#666';
+    } else {
+      favorites.add(id);
+      heart.style.color = '#ef4444';
+    }
+
+    localStorage.setItem(
+      'favorites',
+      JSON.stringify([...favorites])
+    );
+  });
+});
+}
+    // Fullscreen
+    let fsId = null;
+    function openFullscreen(id) {
+      fsId = id;
+      const c = counters.find(x => x.id === id);
+      document.getElementById('fs-title').textContent = c.icon + ' ' + c.title;
+      document.getElementById('fs-counter').textContent = fmt(currentValues[id], c.prefix, c.suffix);
+      document.getElementById('fullscreen').classList.add('show');
+    }
+    document.getElementById('fs-close').onclick = () => {
+      document.getElementById('fullscreen').classList.remove('show');
+      fsId = null;
+    };
+
+    // Update loop
+    function tick() {
+      const elapsed = (Date.now() - startTime) / 1000;
+      counters.forEach(c => {
+        currentValues[c.id] = c.base + (c.rate * elapsed);
+        const el = document.getElementById('card-' + c.id);
+        if (el) el.textContent = fmt(currentValues[c.id], c.prefix, c.suffix);
+      });
+      // Hero counter (emails)
+      document.getElementById('hero-counter').textContent = fmt(currentValues['emails']);
+      // Fullscreen
+      if (fsId) {
+        const c = counters.find(x => x.id === fsId);
+        document.getElementById('fs-counter').textContent = fmt(currentValues[fsId], c.prefix, c.suffix);
+      }
+      requestAnimationFrame(tick);
+    }
+
+    // Init
+    createStars();
+    renderCategories();
+    renderFeed();
+    tick();
+    lucide.createIcons();
+
+    // Navigation
+    let currentView = 'home';
+    function setNav(view) {
+      currentView = view;
+      document.querySelectorAll('[id^="nav-"]').forEach(btn => btn.classList.remove('text-indigo-400'));
+      document.querySelectorAll('[id^="nav-"]').forEach(btn => btn.classList.add('text-gray-500'));
+      
+      if (view === 'home') {
+        document.getElementById('nav-home').classList.remove('text-gray-500');
+        document.getElementById('nav-home').classList.add('text-indigo-400');
+        activeCat = 'all';
+        renderCategories();
+        renderFeed();
+      } else if (view === 'favorites') {
+        document.getElementById('nav-fav').classList.remove('text-gray-500');
+        document.getElementById('nav-fav').classList.add('text-indigo-400');
+        const el = document.getElementById('counter-feed');
+        if (favorites.size === 0) {
+          el.innerHTML = '<div class="text-center py-12 text-gray-500">No favorites yet. Add some counters to get started!</div>';
+        } else {
+          const filtered = counters.filter(c => favorites.has(c.id));
+          el.innerHTML = filtered.map((c, i) => `
+            <div class="glass-card p-5 animate-float cursor-pointer counter-card" style="animation-delay:${i * 0.05}s" data-counter-id="${c.id}">
+              <div class="flex items-start justify-between">
+                <div class="flex-1" style="pointer-events: none;">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-lg">${c.icon}</span>
+                    <span class="text-sm text-gray-300 font-medium">${c.title}</span>
+                  </div>
+                  <div class="mono text-2xl font-bold mt-2" id="card-${c.id}">${fmt(currentValues[c.id], c.prefix, c.suffix)}</div>
+                  <p class="text-xs text-gray-500 mt-1">${c.rate > 0 ? '+' + Math.round(c.rate * 60).toLocaleString() + '/min' : 'Constant'}</p>
+                </div>
+                <div class="flex flex-col items-center justify-start ml-3">
+                  <button class="heart-btn p-2 rounded-lg hover:bg-white/10 transition" data-heart-id="${c.id}" style="pointer-events: auto;">
+                    <span class="favorite-heart">♥</span>
+                  </button>
+                  <div class="relative flex items-center justify-center -mt-1">
+                    
+                    <span class="absolute w-3 h-3 rounded-full bg-green-400 opacity-30 animate-ping"></span>
+
+                    <span class="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_12px_rgba(74,222,128,1)]"></span>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+          `).join('');
+          el.querySelectorAll('.counter-card').forEach(card => {
+            card.onclick = (e) => {
+              if (e.target.closest('.heart-btn')) return;
+              openFullscreen(card.dataset.counterId);
+            };
+          });
+          el.querySelectorAll('.heart-btn').forEach(btn => {
+            btn.addEventListener('click', e => {
+              e.stopPropagation();
+
+              const id = btn.dataset.heartId;
+
+              favorites.delete(id);
+
+              localStorage.setItem(
+                'favorites',
+                JSON.stringify([...favorites])
+              );
+
+              setNav('favorites');
+
+
+            });
+          });
+        }
+      }
+    }
+
+    document.getElementById('nav-home').onclick = () => setNav('home');
+    document.getElementById('nav-cat').onclick = () => setNav('home');
+    document.getElementById('nav-explore').onclick = () => setNav('home');
+    document.getElementById('nav-fav').onclick = () => setNav('favorites');
+
+    // Element SDK
+    const defaultConfig = {
+      hero_text: 'The world is moving right now.',
+      app_title: 'EarthNow',
+      background_color: '#0a0a0f',
+      card_color: '#1a1a2e',
+      text_color: '#ffffff',
+      accent_color: '#6366f1',
+      secondary_color: '#22c55e',
+      font_family: 'Outfit',
+      font_size: 16
+    };
+
   </script>
 </html>
