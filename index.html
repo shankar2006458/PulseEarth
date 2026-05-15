@@ -17,6 +17,23 @@
     @keyframes star-drift { 0% { transform: translateY(0) translateX(0); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-100%) translateX(20px); opacity: 0; } }
     
     .animate-float { animation: float-up 0.6s ease-out forwards; opacity: 0; }
+    .battle-fade {
+      animation: battleFade .35s ease;
+    }
+
+    @keyframes battleFade {
+
+      from {
+        opacity: 0;
+        transform: translateX(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+    }
     .pulse-live { animation: pulse-glow 1.5s ease-in-out infinite; }
     
     .glass-card {
@@ -25,11 +42,33 @@
       backdrop-filter: blur(12px);
       border-radius: 20px;
       transition: all 0.3s ease;
+      overflow: hidden;
     }
-    .glass-card:hover, .glass-card:active {
+    /* Desktop only hover effects */
+    @media (hover: hover) and (pointer: fine) {
+
+      .glass-card:hover {
+        background: rgba(255,255,255,0.06);
+        border-color: rgba(255,255,255,0.15);
+        transform: scale(1.02);
+      }
+
+      .category-chip:hover {
+        background: rgba(99,102,241,0.2);
+        border-color: rgba(99,102,241,0.5);
+      }
+
+    }
+
+    /* Keep active states working everywhere */
+    .glass-card:active {
       background: rgba(255,255,255,0.06);
       border-color: rgba(255,255,255,0.15);
-      transform: scale(1.02);
+    }
+
+    .category-chip.active {
+      background: rgba(99,102,241,0.2);
+      border-color: rgba(99,102,241,0.5);
     }
     
     .digit-roller { display: inline-block; overflow: hidden; height: 1em; line-height: 1; vertical-align: bottom; }
@@ -38,7 +77,6 @@
     .star { position: absolute; width: 2px; height: 2px; background: rgba(255,255,255,0.4); border-radius: 50%; animation: star-drift linear infinite; }
     
     .category-chip { white-space: nowrap; padding: 8px 16px; border-radius: 999px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.2s; font-size: 14px; }
-    .category-chip.active, .category-chip:hover { background: rgba(99,102,241,0.2); border-color: rgba(99,102,241,0.5); }
     
     .bottom-nav { background: rgba(10,10,15,0.95); border-top: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(20px); }
     
@@ -70,20 +108,25 @@
      <p id="hero-text" class="text-gray-400 text-sm mb-1">The world is moving right now.</p>
      <h1 id="app-title" class="text-2xl font-bold mb-6">EarthNow</h1>
     
-      <div id="hero-counter-card" class="glass-card p-6 overflow-hidden">
+      <div
+          id="hero-counter-card"
+          class="glass-card p-6 overflow-hidden relative"
+        >
 
         <p class="text-center text-[12px] text-gray-400 mt-2 mb-3">
           Watching the internet move in real time
         </p>
 
-        <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <div
+          class="grid grid-cols-[1fr_auto_1fr] items-center gap-4 relative"
+        >
 
           <!-- LEFT -->
           <div class="text-center min-w-0">
 
-            <div class="text-3xl mb-2">📧</div>
+            <div id="battle-left-icon" class="text-3xl mb-2">📧</div>
 
-            <p class="text-xs text-gray-400 mb-2">
+            <p id="battle-left-title" class="text-xs text-gray-400 mb-2">
               Emails Sent
             </p>
 
@@ -109,9 +152,9 @@
           <!-- RIGHT -->
           <div class="text-center min-w-0">
 
-            <div class="text-3xl mb-2">❤️</div>
+            <div id="battle-right-icon" class="text-3xl mb-2">❤️</div>
 
-            <p class="text-xs text-gray-400 mb-2">
+            <p id="battle-right-title" class="text-xs text-gray-400 mb-2">
               Instagram Likes
             </p>
 
@@ -125,18 +168,36 @@
 
         </div>
 
+        <button
+          id="battle-prev"
+          class="absolute left-0 top-0 bottom-0 w-1/4 z-20"
+        ></button>
+
+        <button
+          id="battle-next"
+          class="absolute right-0 top-0 bottom-0 w-1/4 z-20"
+        ></button>
+
         <p class="text-center text-[11px] text-gray-500 mt-5">
           Updated 0.2s ago
         </p>
 
         <div class="mt-5 text-center">
 
-        <div class="flex items-center justify-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-green-400 pulse-live"></span>
+        <div class="flex flex-col items-center justify-center gap-2">
+          <div class="flex items-center gap-2">
 
-          <span class="text-xs text-green-400 uppercase tracking-wider">
-            Live Counter Battle
-          </span>
+            <span class="w-2 h-2 rounded-full bg-green-400 pulse-live"></span>
+
+            <span class="text-xs text-green-400 uppercase tracking-wider">
+              Live Counter Battle
+            </span>
+
+          </div>
+          <div
+            id="battle-dots"
+            class="flex justify-center gap-1 mt-3"
+          ></div>
         </div>
 
         </div>
@@ -342,6 +403,42 @@
     let activeCat = 'all';
     let currentValues = {};
     let startTime = Date.now();
+    // HERO BATTLES
+    const heroBattles = [
+
+      {
+        left: 'emails',
+        right: 'insta'
+      },
+
+      {
+        left: 'gamers',
+        right: 'unlocks'
+      },
+
+      {
+        left: 'trees_plant',
+        right: 'trees_cut'
+      },
+
+      {
+        left: 'energy',
+        right: 'co2'
+      },
+
+      {
+        left: 'spotify',
+        right: 'tweets'
+      },
+
+      {
+        left: 'ai',
+        right: 'google'
+      }
+
+    ];
+
+    let currentBattle = 0;
     let favorites = new Set(
       JSON.parse(localStorage.getItem('favorites') || '[]')
     );
@@ -591,6 +688,69 @@ el.querySelectorAll('.heart-btn').forEach(btn => {
       fsId = null;
     };
 
+    // Battle UI
+    function updateBattleUI() {
+      const heroCard = document.getElementById('hero-counter-card');
+
+      const battle = heroBattles[currentBattle];
+
+      const left = counters.find(c => c.id === battle.left);
+      const right = counters.find(c => c.id === battle.right);
+      heroCard.classList.remove('battle-fade');
+
+      void heroCard.offsetWidth;
+
+      heroCard.classList.add('battle-fade');
+
+      document.getElementById('battle-left-icon').textContent =
+        left.icon;
+
+      document.getElementById('battle-right-icon').textContent =
+        right.icon;
+
+      document.getElementById('battle-left-title').textContent =
+        left.title;
+
+      document.getElementById('battle-right-title').textContent =
+        right.title;
+
+      document.getElementById('battle-dots').innerHTML =
+        heroBattles.map((_, i) => `
+          <div
+            class="${
+              i === currentBattle
+                ? 'w-4 bg-white'
+                : 'w-1.5 bg-white/25'
+            } h-1.5 rounded-full transition-all"
+          ></div>
+        `).join('');
+
+    }
+
+    function nextBattle() {
+
+      currentBattle++;
+
+      if (currentBattle >= heroBattles.length) {
+        currentBattle = 0;
+      }
+
+      updateBattleUI();
+
+    }
+
+    function prevBattle() {
+
+      currentBattle--;
+
+      if (currentBattle < 0) {
+        currentBattle = heroBattles.length - 1;
+      }
+
+      updateBattleUI();
+
+    }
+
     // Update loop
     function tick() {
       const elapsed = (Date.now() - startTime) / 1000;
@@ -600,11 +760,29 @@ el.querySelectorAll('.heart-btn').forEach(btn => {
         if (el) el.textContent = fmt(currentValues[c.id], c.prefix, c.suffix);
       });
       // Counter Battle
+      const activeBattle = heroBattles[currentBattle];
+
+      const leftCounter = counters.find(
+        c => c.id === activeBattle.left
+      );
+
+      const rightCounter = counters.find(
+        c => c.id === activeBattle.right
+      );
+
       document.getElementById('battle-left').textContent =
-        fmt(currentValues['emails']);
+        fmt(
+          currentValues[leftCounter.id],
+          leftCounter.prefix,
+          leftCounter.suffix
+        );
 
       document.getElementById('battle-right').textContent =
-        fmt(currentValues['insta']);
+        fmt(
+          currentValues[rightCounter.id],
+          rightCounter.prefix,
+          rightCounter.suffix
+        );
       // Fullscreen
       if (fsId) {
         const c = counters.find(x => x.id === fsId);
@@ -618,6 +796,23 @@ el.querySelectorAll('.heart-btn').forEach(btn => {
     renderCategories();
     renderFeed();
     tick();
+    updateBattleUI();
+
+    let battleInterval;
+
+    function startBattleAutoRotate() {
+
+      clearInterval(battleInterval);
+
+      battleInterval = setInterval(() => {
+
+        nextBattle();
+
+      }, 7000);
+
+    }
+
+    startBattleAutoRotate();
     lucide.createIcons();
 
     document.getElementById('cat-scroll-left').onclick = () => {
@@ -988,6 +1183,62 @@ function setNav(view) {
     };
     document.getElementById('nav-cat').onclick = () => setNav('categories');
     document.getElementById('nav-fav').onclick = () => setNav('favorites');
+
+    // HERO SWIPE
+    const heroCard = document.getElementById('hero-counter-card');
+
+    heroCard.style.touchAction = 'pan-y';
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    heroCard.addEventListener('touchstart', e => {
+
+      touchStartX = e.changedTouches[0].screenX;
+
+    });
+
+    heroCard.addEventListener('touchend', e => {
+
+      touchEndX = e.changedTouches[0].screenX;
+
+      const diff = touchStartX - touchEndX;
+
+      // SWIPE LEFT
+      if (diff > 50) {
+
+        nextBattle();
+
+        startBattleAutoRotate();
+
+      }
+
+      // SWIPE RIGHT
+      else if (diff < -50) {
+
+        prevBattle();
+
+        startBattleAutoRotate();
+
+      }
+
+    });
+
+    document.getElementById('battle-prev').onclick = () => {
+
+      prevBattle();
+
+      startBattleAutoRotate();
+
+    };
+
+    document.getElementById('battle-next').onclick = () => {
+
+      nextBattle();
+
+      startBattleAutoRotate();
+
+    };
 
     // Element SDK
     const defaultConfig = {
