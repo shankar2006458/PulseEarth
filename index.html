@@ -73,13 +73,45 @@
        <span class="w-2 h-2 rounded-full bg-green-400 pulse-live"></span> <span class="text-xs text-green-400 uppercase tracking-wider">Live</span>
       </div>
       <p class="text-gray-400 text-sm mb-2">Emails Sent Today</p>
-      <div id="hero-counter" class="mono text-4xl font-bold text-white"></div>
+      <div
+          id="hero-counter"
+          class="mono font-bold text-white leading-tight break-all
+                text-[clamp(1.8rem,8vw,2.8rem)]"
+        ></div>
       <p class="text-xs text-gray-500 mt-2">Updated 0.2s ago</p>
      </div>
-    </div><!-- Categories -->
+    </div>
+    <!-- Categories -->
     <div class="px-5 mb-4">
-     <div id="categories" class="flex gap-2 overflow-x-auto no-scroll py-1"></div>
-    </div><!-- Counter cards -->
+      
+      <div class="relative flex items-center">
+
+        <!-- Left Arrow -->
+        <button
+          id="cat-scroll-left"
+          class="hidden md:flex absolute left-0 z-20 items-center justify-center w-10 h-10 rounded-full bg-black/50 border border-white/10 backdrop-blur text-white hover:bg-black/70 transition"
+        >
+          <i data-lucide="chevron-left" class="w-5 h-5"></i>
+        </button>
+
+        <!-- Categories -->
+        <div
+          id="categories"
+          class="flex gap-2 overflow-x-auto no-scroll py-1 md:px-12 w-full scroll-smooth"
+        ></div>
+
+        <!-- Right Arrow -->
+        <button
+          id="cat-scroll-right"
+          class="hidden md:flex absolute right-0 z-20 items-center justify-center w-10 h-10 rounded-full bg-black/50 border border-white/10 backdrop-blur text-white hover:bg-black/70 transition"
+        >
+          <i data-lucide="chevron-right" class="w-5 h-5"></i>
+        </button>
+
+      </div>
+
+    </div>
+    <!-- Counter cards -->
     <div id="counter-feed" class="px-5 space-y-3 pb-6"></div>
    </div><!-- Bottom nav -->
    <div class="bottom-nav fixed bottom-0 left-0 right-0 flex justify-around py-3 z-50"><button id="nav-home" class="flex flex-col items-center gap-1 text-indigo-400 transition"><i data-lucide="home" style="width:20px;height:20px"></i><span class="text-[10px]">Home</span></button> <button id="nav-cat" class="flex flex-col items-center gap-1 text-gray-500 transition"><i data-lucide="grid" style="width:20px;height:20px"></i><span class="text-[10px]">Categories</span></button> <button id="nav-explore" class="flex flex-col items-center gap-1 text-gray-500 transition"><i data-lucide="compass" style="width:20px;height:20px"></i><span class="text-[10px]">Explore</span></button> <button id="nav-fav" class="flex flex-col items-center gap-1 text-gray-500 transition"><i data-lucide="heart" style="width:20px;height:20px"></i><span class="text-[10px]">Favorites</span></button>
@@ -87,7 +119,11 @@
    <div id="fullscreen" class="fullscreen-overlay">
     <button id="fs-close" class="absolute top-6 right-6 text-gray-400"><i data-lucide="x" style="width:28px;height:28px"></i></button>
     <p id="fs-title" class="text-gray-400 text-lg mb-4"></p>
-    <div id="fs-counter" class="mono text-5xl md:text-7xl font-bold text-white text-center px-4"></div>
+    <div
+        id="fs-counter"
+        class="mono font-bold text-white text-center px-4 leading-tight break-all
+              text-[clamp(2.5rem,10vw,5rem)]"
+      ></div>
     <div class="flex items-center gap-2 mt-4">
      <span class="w-2 h-2 rounded-full bg-green-400 pulse-live"></span> <span class="text-xs text-green-400 uppercase tracking-wider">Live</span>
       
@@ -113,6 +149,7 @@
       { id: 'flights', icon: '✈️', title: 'Flights Currently Flying', cat: 'world', base: 12847, rate: 0.5, prefix: '', suffix: '' },
       { id: 'co2', icon: '🌫️', title: 'CO₂ Emitted Today (tons)', cat: 'environment', base: 110000000, rate: 1200, prefix: '', suffix: '' },
       { id: 'btc', icon: '₿', title: 'Bitcoin Transactions', cat: 'economy', base: 742000, rate: 4.2, prefix: '', suffix: '' },
+      { id: 'upi', icon: '💳', title: 'UPI Transactions Today', cat: 'economy', base: 14800000000, rate: 8200, prefix: '', suffix: '' },
       { id: 'coffee', icon: '☕', title: 'Cups of Coffee Drunk', cat: 'world', base: 2800000000, rate: 950, prefix: '', suffix: '' },
       { id: 'insta', icon: '❤️', title: 'Instagram Likes', cat: 'internet', base: 5200000000, rate: 3200, prefix: '', suffix: '' },
       { id: 'netflix', icon: '🎬', title: 'Minutes Watched on Netflix', cat: 'internet', base: 420000000, rate: 380, prefix: '', suffix: '' },
@@ -123,17 +160,99 @@
       { id: 'packages', icon: '📦', title: 'Packages Delivered Today', cat: 'world', base: 68000000, rate: 42, prefix: '', suffix: '' },
       { id: 'food', icon: '🍕', title: 'Food Orders Made Today', cat: 'world', base: 320000000, rate: 180, prefix: '', suffix: '' },
       { id: 'energy', icon: '⚡', title: 'Electricity Used (MWh)', cat: 'energy', base: 67000000, rate: 520, prefix: '', suffix: '' },
+      // SOCIAL
+      { id: 'tiktok', icon: '🎵', title: 'TikTok Videos Watched', cat: 'social', base: 8900000000, rate: 4200, prefix: '', suffix: '' },
+      { id: 'tweets', icon: '🐦', title: 'Tweets Posted', cat: 'social', base: 680000000, rate: 320, prefix: '', suffix: '' },
+      { id: 'snapchat', icon: '👻', title: 'Snapchat Messages Sent', cat: 'social', base: 5400000000, rate: 2400, prefix: '', suffix: '' },
+      { id: 'reels', icon: '🎞️', title: 'Reels Watched', cat: 'social', base: 7800000000, rate: 3600, prefix: '', suffix: '' },
+      { id: 'discord', icon: '💬', title: 'Discord Messages', cat: 'social', base: 920000000, rate: 450, prefix: '', suffix: '' },
+      { id: 'linkedin', icon: '💼', title: 'LinkedIn Posts', cat: 'social', base: 28000000, rate: 12, prefix: '', suffix: '' },
+      { id: 'facebook', icon: '👍', title: 'Facebook Likes', cat: 'social', base: 4200000000, rate: 2800, prefix: '', suffix: '' },
+      { id: 'reddit', icon: '👽', title: 'Reddit Comments', cat: 'social', base: 96000000, rate: 52, prefix: '', suffix: '' },
+
+      // HUMAN
+      { id: 'sleeping', icon: '😴', title: 'People Sleeping Right Now', cat: 'human', base: 3100000000, rate: 2, prefix: '', suffix: '' },
+      { id: 'traveling', icon: '🧳', title: 'People Traveling Right Now', cat: 'human', base: 820000000, rate: 5, prefix: '', suffix: '' },
+      { id: 'online', icon: '🌐', title: 'Humans Online', cat: 'human', base: 5400000000, rate: 8, prefix: '', suffix: '' },
+      { id: 'selfies', icon: '🤳', title: 'People Taking Selfies', cat: 'human', base: 92000000, rate: 42, prefix: '', suffix: '' },
+      { id: 'marriages', icon: '💍', title: 'Marriages Today', cat: 'human', base: 182000, rate: 1.4, prefix: '', suffix: '' },
+      { id: 'breakups', icon: '💔', title: 'Breakups Today', cat: 'human', base: 260000, rate: 2.2, prefix: '', suffix: '' },
+      { id: 'scrolling', icon: '📱', title: 'Hours Spent Scrolling', cat: 'human', base: 480000000, rate: 220, prefix: '', suffix: '' },
+      { id: 'unlocks', icon: '🔓', title: 'Phone Unlocks Today', cat: 'human', base: 9800000000, rate: 4200, prefix: '', suffix: '' },
+      { id: 'books', icon: '📚', title: 'Books Read Today', cat: 'human', base: 12000000, rate: 5, prefix: '', suffix: '' },
+      { id: 'steps', icon: '👣', title: 'Steps Walked Worldwide', cat: 'human', base: 480000000000, rate: 220000, prefix: '', suffix: '' },
+
+      // FOOD
+      { id: 'burgers', icon: '🍔', title: 'Burgers Eaten', cat: 'food', base: 620000000, rate: 240, prefix: '', suffix: '' },
+      { id: 'pizza', icon: '🍕', title: 'Pizzas Ordered', cat: 'food', base: 420000000, rate: 180, prefix: '', suffix: '' },
+      { id: 'noodles', icon: '🍜', title: 'Instant Noodles Consumed', cat: 'food', base: 890000000, rate: 420, prefix: '', suffix: '' },
+      { id: 'water', icon: '💧', title: 'Liters of Water Drunk', cat: 'food', base: 7200000000, rate: 3200, prefix: '', suffix: '' },
+      { id: 'icecream', icon: '🍦', title: 'Ice Creams Sold', cat: 'food', base: 210000000, rate: 92, prefix: '', suffix: '' },
+      { id: 'energydrink', icon: '🥤', title: 'Energy Drinks Consumed', cat: 'food', base: 182000000, rate: 84, prefix: '', suffix: '' },
+
+      // TRANSPORT
+      { id: 'cars', icon: '🚘', title: 'Cars Produced Today', cat: 'transport', base: 182000, rate: 1.2, prefix: '', suffix: '' },
+      { id: 'uber', icon: '🚕', title: 'Uber Trips Today', cat: 'transport', base: 28000000, rate: 18, prefix: '', suffix: '' },
+      { id: 'fuel', icon: '⛽', title: 'Fuel Burned Today', cat: 'transport', base: 620000000, rate: 420, prefix: '', suffix: ' L' },
+      { id: 'traffic', icon: '🚦', title: 'Traffic Hours Lost', cat: 'transport', base: 42000000, rate: 28, prefix: '', suffix: ' hrs' },
+      { id: 'ev', icon: '🔋', title: 'Electric Cars Sold', cat: 'transport', base: 62000, rate: 0.6, prefix: '', suffix: '' },
+      { id: 'trains', icon: '🚆', title: 'Trains Running Right Now', cat: 'transport', base: 182000, rate: 0.2, prefix: '', suffix: '' },
+
+      // ENTERTAINMENT
+      { id: 'spotify', icon: '🎧', title: 'Spotify Streams', cat: 'entertainment', base: 9200000000, rate: 4200, prefix: '', suffix: '' },
+      { id: 'movies', icon: '🍿', title: 'Movies Streamed', cat: 'entertainment', base: 280000000, rate: 180, prefix: '', suffix: '' },
+      { id: 'songs', icon: '🎶', title: 'Songs Uploaded', cat: 'entertainment', base: 9200000, rate: 4, prefix: '', suffix: '' },
+      { id: 'podcasts', icon: '🎙️', title: 'Podcasts Played', cat: 'entertainment', base: 620000000, rate: 240, prefix: '', suffix: '' },
+      { id: 'twitch', icon: '🟣', title: 'Twitch Viewers', cat: 'entertainment', base: 8200000, rate: 12, prefix: '', suffix: '' },
+      { id: 'anime', icon: '📺', title: 'Anime Episodes Watched', cat: 'entertainment', base: 92000000, rate: 44, prefix: '', suffix: '' },
+      { id: 'cinema', icon: '🎟️', title: 'Cinema Tickets Sold', cat: 'entertainment', base: 42000000, rate: 16, prefix: '', suffix: '' },
+      { id: 'memes', icon: '😂', title: 'Memes Shared', cat: 'entertainment', base: 720000000, rate: 380, prefix: '', suffix: '' },
+
+      // TECH
+      { id: 'phones', icon: '📲', title: 'Phones Charged', cat: 'tech', base: 920000000, rate: 420, prefix: '', suffix: '' },
+      { id: 'apps', icon: '📥', title: 'Apps Downloaded', cat: 'tech', base: 480000000, rate: 240, prefix: '', suffix: '' },
+      { id: 'websites', icon: '🌍', title: 'Websites Created', cat: 'tech', base: 4200000, rate: 2, prefix: '', suffix: '' },
+      { id: 'github', icon: '💻', title: 'GitHub Commits', cat: 'tech', base: 92000000, rate: 52, prefix: '', suffix: '' },
+      { id: 'code', icon: '⌨️', title: 'Lines of Code Written', cat: 'tech', base: 7200000000, rate: 4200, prefix: '', suffix: '' },
+      { id: 'cloud', icon: '☁️', title: 'Cloud Requests', cat: 'tech', base: 18200000000, rate: 8200, prefix: '', suffix: '' },
+      { id: 'aiimages', icon: '🖼️', title: 'AI Images Generated', cat: 'tech', base: 420000000, rate: 320, prefix: '', suffix: '' },
+      { id: 'devices', icon: '📡', title: 'Smart Devices Online', cat: 'tech', base: 18200000000, rate: 1200, prefix: '', suffix: '' },
+
+      // CYBER
+      { id: 'passwords', icon: '🔑', title: 'Passwords Stolen', cat: 'cyber', base: 9200000, rate: 6, prefix: '', suffix: '' },
+      { id: 'phishing', icon: '🎣', title: 'Phishing Emails Sent', cat: 'cyber', base: 1820000000, rate: 920, prefix: '', suffix: '' },
+      { id: 'hacked', icon: '💀', title: 'Websites Hacked', cat: 'cyber', base: 620000, rate: 2, prefix: '', suffix: '' },
+      { id: 'malware', icon: '🦠', title: 'Malware Attacks', cat: 'cyber', base: 4200000, rate: 12, prefix: '', suffix: '' },
+      { id: 'vpn', icon: '🛡️', title: 'VPN Users Online', cat: 'cyber', base: 620000000, rate: 82, prefix: '', suffix: '' },
+
+      // SPORTS
+      { id: 'football', icon: '⚽', title: 'Football Matches Live', cat: 'sports', base: 4200, rate: 0.2, prefix: '', suffix: '' },
+      { id: 'goals', icon: '🥅', title: 'Goals Scored Today', cat: 'sports', base: 92000, rate: 4, prefix: '', suffix: '' },
+      { id: 'cricket', icon: '🏏', title: 'Cricket Runs Today', cat: 'sports', base: 1820000, rate: 42, prefix: '', suffix: '' },
+      { id: 'basketball', icon: '🏀', title: 'Basketball Shots Taken', cat: 'sports', base: 92000000, rate: 420, prefix: '', suffix: '' },
+      { id: 'gym', icon: '🏋️', title: 'Calories Burned in Gyms', cat: 'sports', base: 720000000, rate: 380, prefix: '', suffix: '' },
+      { id: 'stadium', icon: '🏟️', title: 'Active Stadium Viewers', cat: 'sports', base: 6200000, rate: 12, prefix: '', suffix: '' },
+      { id: 'fantasy', icon: '📊', title: 'Fantasy League Users', cat: 'sports', base: 42000000, rate: 24, prefix: '', suffix: '' },
+      { id: 'tennis', icon: '🎾', title: 'Tennis Balls Hit', cat: 'sports', base: 82000000, rate: 380, prefix: '', suffix: '' },
     ];
 
     const categories = [
       { id: 'all', label: '🌐 All' },
       { id: 'world', label: '🌍 World' },
+      { id: 'internet', label: '📱 Internet' },
+      { id: 'social', label: '❤️ Social' },
+      { id: 'human', label: '🧠 Human' },
+      { id: 'food', label: '🍔 Food' },
+      { id: 'transport', label: '🚗 Transport' },
+      { id: 'entertainment', label: '🎵 Entertainment' },
+      { id: 'tech', label: '💻 Tech' },
+      { id: 'cyber', label: '🔐 Cyber' },
+      { id: 'sports', label: '🏆 Sports' },
       { id: 'space', label: '📡 Space' },
       { id: 'gaming', label: '🎮 Gaming' },
       { id: 'economy', label: '💰 Economy' },
       { id: 'environment', label: '🌱 Environment' },
       { id: 'ai', label: '🤖 AI' },
-      { id: 'internet', label: '📱 Internet' },
       { id: 'energy', label: '⚡ Energy' },
     ];
 
@@ -201,7 +320,11 @@ function renderFeed() {
               <span class="text-sm text-gray-300 font-medium">${c.title}</span>
             </div>
 
-            <div class="mono text-2xl font-bold mt-2" id="card-${c.id}">
+            <div
+                class="mono font-bold mt-2 leading-tight break-all
+                      text-[clamp(1.15rem,4vw,1.6rem)]"
+                id="card-${c.id}"
+              >
               ${fmt(currentValues[c.id], c.prefix, c.suffix)}
             </div>
 
@@ -312,6 +435,20 @@ el.querySelectorAll('.heart-btn').forEach(btn => {
     renderFeed();
     tick();
     lucide.createIcons();
+
+    document.getElementById('cat-scroll-left').onclick = () => {
+      document.getElementById('categories').scrollBy({
+        left: -300,
+        behavior: 'smooth'
+      });
+    };
+
+    document.getElementById('cat-scroll-right').onclick = () => {
+      document.getElementById('categories').scrollBy({
+        left: 300,
+        behavior: 'smooth'
+      });
+    };
 
     // Navigation
     let currentView = 'home';
