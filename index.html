@@ -69,18 +69,80 @@
     <div id="hero-section" class="px-5 pt-12 pb-6">
      <p id="hero-text" class="text-gray-400 text-sm mb-1">The world is moving right now.</p>
      <h1 id="app-title" class="text-2xl font-bold mb-6">EarthNow</h1>
-     <div id="hero-counter-card" class="glass-card p-6 text-center">
-      <div class="flex items-center justify-center gap-2 mb-2">
-       <span class="w-2 h-2 rounded-full bg-green-400 pulse-live"></span> <span class="text-xs text-green-400 uppercase tracking-wider">Live</span>
+    
+      <div id="hero-counter-card" class="glass-card p-6 overflow-hidden">
+
+        <p class="text-center text-[12px] text-gray-400 mt-2 mb-3">
+          Watching the internet move in real time
+        </p>
+
+        <div class="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+
+          <!-- LEFT -->
+          <div class="text-center min-w-0">
+
+            <div class="text-3xl mb-2">📧</div>
+
+            <p class="text-xs text-gray-400 mb-2">
+              Emails Sent
+            </p>
+
+            <div
+              id="battle-left"
+              class="mono font-bold text-white leading-tight break-all
+                    text-[clamp(1.1rem,5vw,2rem)]"
+            ></div>
+
+          </div>
+
+          <!-- VS -->
+          <div class="flex flex-col items-center">
+
+            <div class="text-sm font-bold text-indigo-400 animate-pulse">
+              VS
+            </div>
+
+            <div class="w-px h-16 bg-white/10 mt-2"></div>
+
+          </div>
+
+          <!-- RIGHT -->
+          <div class="text-center min-w-0">
+
+            <div class="text-3xl mb-2">❤️</div>
+
+            <p class="text-xs text-gray-400 mb-2">
+              Instagram Likes
+            </p>
+
+            <div
+              id="battle-right"
+              class="mono font-bold text-white leading-tight break-all
+                    text-[clamp(1.1rem,5vw,2rem)]"
+            ></div>
+
+          </div>
+
+        </div>
+
+        <p class="text-center text-[11px] text-gray-500 mt-5">
+          Updated 0.2s ago
+        </p>
+
+        <div class="mt-5 text-center">
+
+        <div class="flex items-center justify-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-green-400 pulse-live"></span>
+
+          <span class="text-xs text-green-400 uppercase tracking-wider">
+            Live Counter Battle
+          </span>
+        </div>
+
+        </div>
+        
       </div>
-      <p class="text-gray-400 text-sm mb-2">Emails Sent Today</p>
-      <div
-          id="hero-counter"
-          class="mono font-bold text-white leading-tight break-all
-                text-[clamp(1.8rem,8vw,2.8rem)]"
-        ></div>
-      <p class="text-xs text-gray-500 mt-2">Updated 0.2s ago</p>
-     </div>
+
     </div>
     <!-- Categories -->
     <div class="px-5 mb-4">
@@ -537,8 +599,12 @@ el.querySelectorAll('.heart-btn').forEach(btn => {
         const el = document.getElementById('card-' + c.id);
         if (el) el.textContent = fmt(currentValues[c.id], c.prefix, c.suffix);
       });
-      // Hero counter (emails)
-      document.getElementById('hero-counter').textContent = fmt(currentValues['emails']);
+      // Counter Battle
+      document.getElementById('battle-left').textContent =
+        fmt(currentValues['emails']);
+
+      document.getElementById('battle-right').textContent =
+        fmt(currentValues['insta']);
       // Fullscreen
       if (fsId) {
         const c = counters.find(x => x.id === fsId);
@@ -644,6 +710,7 @@ function setNav(view) {
 
   // HOME
   if (view === 'home') {
+
 
     document.getElementById('nav-home')
       .classList.remove('text-gray-500');
@@ -898,7 +965,27 @@ function setNav(view) {
 
 }
 
-    document.getElementById('nav-home').onclick = () => setNav('home');
+    document.getElementById('nav-home').onclick = () => {
+
+      activeCat = 'all';
+
+      renderCategories();
+
+      setNav('home');
+
+      // AUTO SCROLL CATEGORY BAR TO START
+      document.getElementById('categories').scrollTo({
+        left: 0,
+        behavior: 'smooth'
+      });
+
+      // AUTO SCROLL PAGE TO TOP
+      document.getElementById('main-content').scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+
+    };
     document.getElementById('nav-cat').onclick = () => setNav('categories');
     document.getElementById('nav-fav').onclick = () => setNav('favorites');
 
